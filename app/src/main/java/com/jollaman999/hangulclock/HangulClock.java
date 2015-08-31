@@ -30,7 +30,7 @@ public class HangulClock extends AppCompatActivity {
     private EditText edit_timer_hour;
     private EditText edit_timer_minute;
     private EditText edit_timer_second;
-    private Button btn_start_stop;
+    private Button btn_start_pause;
 
     private boolean is_screen_keep_on;
     private boolean is_24hour;
@@ -49,6 +49,8 @@ public class HangulClock extends AppCompatActivity {
 
     static boolean is_clock;
     static boolean is_time_changed;
+    static boolean is_timer_paused;
+    static boolean is_timer_cleared;
 
     public void Init_Clock() {
         is_clock = true;
@@ -113,6 +115,8 @@ public class HangulClock extends AppCompatActivity {
 
     public void Init_Timer() {
         is_clock = false;
+        is_timer_paused = true;
+        is_timer_cleared = true;
 
         edit_timer_hour = (EditText) findViewById(R.id.edit_timer_hour);
         edit_timer_minute = (EditText) findViewById(R.id.edit_timer_minute);
@@ -120,14 +124,34 @@ public class HangulClock extends AppCompatActivity {
 
         text_clock_timer = (TextView) findViewById(R.id.text_timer);
         chk_screen_keep_on = (CheckBox) findViewById(R.id.chk_screen_keep_on);
-        btn_start_stop = (Button) findViewById(R.id.btn_start_stop);
+        btn_start_pause = (Button) findViewById(R.id.btn_start_pause);
 
-        btn_start_stop.setOnClickListener(new View.OnClickListener() {
+        btn_start_pause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String s;
 
                 CancelThreads();
+
+                if (!is_timer_cleared) {
+                    if (is_timer_paused) {
+                        btn_start_pause.setText(R.string.pause);
+                        is_timer_paused = false;
+
+                        mTimerRefresher = new TimerRefresher();
+                        TimerThread = new Thread(mTimerRefresher);
+                        TimerThread.start();
+                    } else {
+                        btn_start_pause.setText(R.string.start);
+                        is_timer_paused = true;
+                    }
+
+                    return;
+                }
+
+                btn_start_pause.setText(R.string.pause);
+                is_timer_paused = false;
+                is_timer_cleared = false;
 
                 s = edit_timer_hour.getText().toString();
                 if (s == null || s.equals("")) {
@@ -539,6 +563,13 @@ public class HangulClock extends AppCompatActivity {
         }
     }
 
+    private final Handler btn_start_pause_Handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            btn_start_pause.setText(R.string.start);
+        }
+    };
+
     private class TimerRefresher extends Thread {
 
         private boolean is_thread_canceled = false;
@@ -551,6 +582,16 @@ public class HangulClock extends AppCompatActivity {
         public void run() {
             while (!is_thread_canceled) {
                 if (mHour == 0 && mMinute == 0 && mSecond == 0) {
+                    is_timer_paused = true;
+                    is_timer_cleared = true;
+
+                    Message msg = btn_start_pause_Handler.obtainMessage();
+                    btn_start_pause_Handler.sendMessage(msg);
+
+                    return;
+                }
+
+                if (is_timer_paused) {
                     return;
                 }
 
