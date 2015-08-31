@@ -33,8 +33,8 @@ public class HangulClock extends AppCompatActivity {
     private EditText edit_timer_second;
     private Button btn_start_pause;
 
-    private boolean is_screen_keep_on;
-    private boolean is_24hour;
+    private boolean is_screen_keep_on = false;
+    private boolean is_24hour = false;
 
     private int mHour;
     private int mMinute;
@@ -62,8 +62,6 @@ public class HangulClock extends AppCompatActivity {
         chk_24hour = (CheckBox) findViewById(R.id.chk_24hour);
         btn_current_time = (Button) findViewById(R.id.btn_current_time);
         btn_clock_setting = (Button) findViewById (R.id.btn_clock_setting);
-
-        is_24hour = false;
 
         chk_screen_keep_on.setChecked(is_screen_keep_on);
         if (is_screen_keep_on) {
