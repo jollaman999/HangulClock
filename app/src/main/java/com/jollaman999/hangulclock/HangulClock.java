@@ -34,6 +34,7 @@ public class HangulClock extends AppCompatActivity {
     private EditText edit_timer_hour;
     private EditText edit_timer_minute;
     private EditText edit_timer_second;
+    private Button btn_stop;
     private Button btn_start_pause;
 
     private boolean is_screen_keep_on = false;
@@ -136,8 +137,25 @@ public class HangulClock extends AppCompatActivity {
 
         text_clock_timer = (TextView) findViewById(R.id.text_timer);
         chk_screen_keep_on = (CheckBox) findViewById(R.id.chk_screen_keep_on);
+        btn_stop = (Button) findViewById(R.id.btn_stop);
         btn_start_pause = (Button) findViewById(R.id.btn_start_pause);
 
+        btn_stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CancelThreads();
+
+                mHour = 0;
+                mMinute = 0;
+                mSecond = 0;
+
+                UpdateClockTimer();
+
+                btn_start_pause.setText(R.string.start);
+                is_timer_paused = true;
+                is_timer_cleared = true;
+            }
+        });
         btn_start_pause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
