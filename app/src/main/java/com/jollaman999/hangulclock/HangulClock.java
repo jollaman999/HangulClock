@@ -557,7 +557,7 @@ public class HangulClock extends AppCompatActivity {
                 try {
                     sleep(1000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    continue;
                 }
 
                 mSecond--;
