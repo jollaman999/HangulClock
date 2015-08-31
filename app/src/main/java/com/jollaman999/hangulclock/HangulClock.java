@@ -1,6 +1,5 @@
 package com.jollaman999.hangulclock;
 
-import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.res.Configuration;
@@ -105,11 +104,7 @@ public class HangulClock extends AppCompatActivity {
             }
         });
 
-        calendar = Calendar.getInstance();
-
-        mHour = calendar.get(Calendar.HOUR_OF_DAY);
-        mMinute = calendar.get(Calendar.MINUTE);
-        mSecond = calendar.get(Calendar.SECOND);
+        TimeSync();
 
         mClockRefresher = new ClockRefresher();
         ClockThread = new Thread(mClockRefresher);
@@ -205,13 +200,17 @@ public class HangulClock extends AppCompatActivity {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        TimeSync();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        // setContentView(R.layout.timer);
 
+        setContentView(R.layout.clock);
         Init_Clock();
-        // Init_Timer();
     }
 
     @Override
@@ -228,7 +227,7 @@ public class HangulClock extends AppCompatActivity {
 
         switch (id) {
             case R.id.action_clock:
-                setContentView(R.layout.main);
+                setContentView(R.layout.clock);
                 Init_Clock();
                 return true;
             case R.id.action_timer:
@@ -258,6 +257,14 @@ public class HangulClock extends AppCompatActivity {
                         mHour, mMinute, false);
         }
         return null;
+    }
+
+    public void TimeSync() {
+        calendar = Calendar.getInstance();
+
+        mHour = calendar.get(Calendar.HOUR_OF_DAY);
+        mMinute = calendar.get(Calendar.MINUTE);
+        mSecond = calendar.get(Calendar.SECOND);
     }
 
     private String Num2Hangul_1 (int value) {
