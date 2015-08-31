@@ -122,13 +122,10 @@ public class HangulClock extends AppCompatActivity {
         chk_screen_keep_on = (CheckBox) findViewById(R.id.chk_screen_keep_on);
         btn_start_stop = (Button) findViewById(R.id.btn_start_stop);
 
-        is_24hour = true;
-
         btn_start_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String s;
-
                 CancelThreads();
 
                 s = edit_timer_hour.getText().toString();
@@ -284,6 +281,9 @@ public class HangulClock extends AppCompatActivity {
         String s = new String("");
 
         switch (value) {
+            case 0:
+                s += "영";
+                break;
             case 1:
                 s += "한";
                 break;
@@ -375,6 +375,10 @@ public class HangulClock extends AppCompatActivity {
         int num1, num2;
 
         num1 = hour;
+
+        if (!is_clock) {
+            return Num2Hangul_1(hour) + "시간 ";
+        }
 
         if (is_24hour) {
             if (num1 >= 10) {
