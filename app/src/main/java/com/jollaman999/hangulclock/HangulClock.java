@@ -168,34 +168,37 @@ public class HangulClock extends AppCompatActivity {
                 s = edit_timer_hour.getText().toString();
                 if (s == null || s.equals("")) {
                     mHour = 0;
-                } else if (Integer.parseInt(s) > 0 && Integer.parseInt(s) < 12) {
+                } else if (Integer.parseInt(s) >= 0 && Integer.parseInt(s) <= 12) {
                     mHour = Integer.parseInt(s);
                 } else {
                     Toast.makeText(getApplicationContext(),
                             "시간의 범위가 초과하였습니다!",
                             Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
                 s = edit_timer_minute.getText().toString();
                 if (s == null || s.equals("")) {
                     mMinute = 0;
-                } else if (Integer.parseInt(s) > 0 && Integer.parseInt(s) < 60) {
+                } else if (Integer.parseInt(s) >= 0 && Integer.parseInt(s) < 60) {
                     mMinute = Integer.parseInt(s);
                 } else {
                     Toast.makeText(getApplicationContext(),
                             "분의 범위가 초과하였습니다!",
                             Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
                 s = edit_timer_second.getText().toString();
                 if (s == null || s.equals("")) {
                     mSecond = 0;
-                } else if (Integer.parseInt(s) > 0 && Integer.parseInt(s) < 60) {
+                } else if (Integer.parseInt(s) >= 0 && Integer.parseInt(s) < 60) {
                     mSecond = Integer.parseInt(s);
                 } else {
                     Toast.makeText(getApplicationContext(),
                             "초의 범위가 초과하였습니다!",
                             Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
                 UpdateClockTimer();
@@ -650,24 +653,20 @@ public class HangulClock extends AppCompatActivity {
                     continue;
                 }
 
-                mSecond--;
-
                 if (mSecond == 0) {
-                    if (mMinute != 0) {
+                    if (mHour != 0 && mMinute == 0) {
+                        mSecond = 59;
+                    } else if (mMinute != 0) {
                         mSecond = 59;
                         mMinute--;
-                    } else {
-                        mSecond = 0;
                     }
+                } else {
+                    mSecond--;
                 }
 
-                if (mMinute == 0) {
-                    if (mHour != 0) {
+                if (mMinute == 0 && mHour != 0) {
                         mMinute = 59;
                         mHour--;
-                    } else {
-                        mMinute = 0;
-                    }
                 }
 
                 if (mHour < 0) {
