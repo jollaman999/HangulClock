@@ -104,7 +104,7 @@ public class HangulClock extends AppCompatActivity {
             }
         });
 
-        TimeSync(is_clock);
+        TimeSync();
 
         mClockRefresher = new ClockRefresher();
         ClockThread = new Thread(mClockRefresher);
@@ -203,7 +203,7 @@ public class HangulClock extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        TimeSync(is_clock);
+        TimeSync();
     }
 
     @Override
@@ -262,7 +262,7 @@ public class HangulClock extends AppCompatActivity {
         return null;
     }
 
-    public void TimeSync(boolean is_clock) {
+    public void TimeSync() {
         if (!is_clock || is_time_changed) {
             return;
         }
