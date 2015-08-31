@@ -1,0 +1,589 @@
+package com.jollaman999.hangulclock;
+
+import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.app.TimePickerDialog;
+import android.content.res.Configuration;
+import android.os.Handler;
+import android.os.Message;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.TimePicker;
+import android.widget.Toast;
+
+import java.util.Calendar;
+
+public class HangulClock extends AppCompatActivity {
+
+    private TextView text_clock;
+    private TextView text_timer;
+    private CheckBox chk_screen_keep_on;
+    private CheckBox chk_24hour;
+    private Button btn_clock_setting;
+
+    private EditText edit_timer_hour;
+    private EditText edit_timer_minute;
+    private EditText edit_timer_second;
+    private Button btn_start_stop;
+
+    private boolean is_screen_keep_on;
+    private boolean is_24hour;
+
+    private int mHour;
+    private int mMinute;
+    private int mSecond;
+    private Calendar calendar;
+
+    private int TimerHour;
+    private int TimerMinute;
+    private int TimerSecond;
+
+    private final static int TIME_DIALOG_ID = 0;
+
+    ClockRefresher mClockRefresher;
+    TimerRefresher mTimerRefresher;
+    Thread ClockThread;
+    Thread TimerThread;
+
+    public void Init_Clock() {
+        text_clock = (TextView) findViewById(R.id.text_clock);
+        chk_screen_keep_on = (CheckBox) findViewById(R.id.chk_screen_keep_on);
+        chk_24hour = (CheckBox) findViewById(R.id.chk_24hour);
+        btn_clock_setting = (Button) findViewById (R.id.btn_clock_setting);
+
+        is_screen_keep_on = false;
+        is_24hour = false;
+
+        chk_screen_keep_on.setChecked(is_screen_keep_on);
+        if (is_screen_keep_on) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+        chk_screen_keep_on.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (is_screen_keep_on) {
+                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    is_screen_keep_on = false;
+                } else {
+                    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    is_screen_keep_on = true;
+                }
+
+                chk_screen_keep_on.setChecked(is_screen_keep_on);
+            }
+        });
+
+        chk_24hour.setChecked(is_24hour);
+        chk_24hour.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (is_24hour) {
+                    is_24hour = false;
+                } else {
+                    is_24hour = true;
+                }
+
+                chk_24hour.setChecked(is_24hour);
+                UpdateClock();
+            }
+        });
+
+        btn_clock_setting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDialog(TIME_DIALOG_ID);
+            }
+        });
+
+        calendar = Calendar.getInstance();
+
+        mHour = calendar.get(Calendar.HOUR_OF_DAY);
+        mMinute = calendar.get(Calendar.MINUTE);
+        mSecond = calendar.get(Calendar.SECOND);
+
+        mClockRefresher = new ClockRefresher();
+        ClockThread = new Thread(mClockRefresher);
+        ClockThread.start();
+    }
+
+    public void Init_Timer() {
+        edit_timer_hour = (EditText) findViewById(R.id.edit_timer_hour);
+        edit_timer_minute = (EditText) findViewById(R.id.edit_timer_minute);
+        edit_timer_second = (EditText) findViewById(R.id.edit_timer_second);
+
+        text_timer = (TextView) findViewById(R.id.text_timer);
+        chk_screen_keep_on = (CheckBox) findViewById(R.id.chk_screen_keep_on);
+        btn_start_stop = (Button) findViewById(R.id.btn_start_stop);
+
+        is_screen_keep_on = false;
+        is_24hour = true;
+
+        btn_start_stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String s;
+
+                CancelThreads();
+
+                s = edit_timer_hour.getText().toString();
+                if (s == null || s.equals("")) {
+                    TimerHour = 0;
+                } else if (Integer.parseInt(s) > 0 && Integer.parseInt(s) < 12) {
+                    TimerHour = Integer.parseInt(s);
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            "시간의 범위가 초과하였습니다!",
+                            Toast.LENGTH_SHORT).show();
+                }
+
+                s = edit_timer_minute.getText().toString();
+                if (s == null || s.equals("")) {
+                    TimerMinute = 0;
+                } else if (Integer.parseInt(s) > 0 && Integer.parseInt(s) < 60) {
+                    TimerMinute = Integer.parseInt(s);
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            "분의 범위가 초과하였습니다!",
+                            Toast.LENGTH_SHORT).show();
+                }
+
+                s = edit_timer_second.getText().toString();
+                if (s == null || s.equals("")) {
+                    TimerSecond = 0;
+                } else if (Integer.parseInt(s) > 0 && Integer.parseInt(s) < 60) {
+                    TimerSecond = Integer.parseInt(s);
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            "초의 범위가 초과하였습니다!",
+                            Toast.LENGTH_SHORT).show();
+                }
+
+                UpdateTimer();
+
+                mTimerRefresher = new TimerRefresher();
+                TimerThread = new Thread(mTimerRefresher);
+                TimerThread.start();
+            }
+        });
+
+        chk_screen_keep_on.setChecked(is_screen_keep_on);
+        if (is_screen_keep_on) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+        chk_screen_keep_on.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (is_screen_keep_on) {
+                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    is_screen_keep_on = false;
+                } else {
+                    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    is_screen_keep_on = true;
+                }
+
+                chk_screen_keep_on.setChecked(is_screen_keep_on);
+            }
+        });
+
+        TimerHour = 0;
+        TimerMinute = 0;
+        TimerSecond = 0;
+
+        UpdateTimer();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        // setContentView(R.layout.timer);
+
+        Init_Clock();
+        // Init_Timer();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_hangul_clock, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        CancelThreads();
+
+        switch (id) {
+            case R.id.action_clock:
+                setContentView(R.layout.main);
+                Init_Clock();
+                return true;
+            case R.id.action_timer:
+                setContentView(R.layout.timer);
+                Init_Timer();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private TimePickerDialog.OnTimeSetListener mTimeSetListener =
+            new TimePickerDialog.OnTimeSetListener() {
+                @Override
+                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                    mHour = hourOfDay;
+                    mMinute = minute;
+                    UpdateClock();
+                }
+            };
+
+    @Override
+    protected Dialog onCreateDialog(int id) {
+        switch (id) {
+            case TIME_DIALOG_ID:
+                return new TimePickerDialog(this, mTimeSetListener,
+                        mHour, mMinute, false);
+        }
+        return null;
+    }
+
+    private String Num2Hangul_1 (int value) {
+        String s = new String("");
+
+        switch (value) {
+            case 1:
+                s += "한";
+                break;
+            case 2:
+                s += "두";
+                break;
+            case 3:
+                s += "세";
+                break;
+            case 4:
+                s += "네";
+                break;
+            case 5:
+                s += "다섯";
+                break;
+            case 6:
+                s += "여섯";
+                break;
+            case 7:
+                s += "일곱";
+                break;
+            case 8:
+                s += "여덟";
+                break;
+            case 9:
+                s += "아홉";
+                break;
+            case 10:
+                s += "열";
+                break;
+            case 11:
+                s += "열한";
+                break;
+            case 12:
+                s += "열두";
+                break;
+            default:
+                break;
+        }
+
+        return s;
+    }
+
+    private String Num2Hangul_2 (int value) {
+        String s = new String("");
+
+        switch (value) {
+            case 0:
+                s += "공";
+                break;
+            case 1:
+                s += "일";
+                break;
+            case 2:
+                s += "이";
+                break;
+            case 3:
+                s += "삼";
+                break;
+            case 4:
+                s += "사";
+                break;
+            case 5:
+                s += "오";
+                break;
+            case 6:
+                s += "육";
+                break;
+            case 7:
+                s += "칠";
+                break;
+            case 8:
+                s += "팔";
+                break;
+            case 9:
+                s += "구";
+                break;
+            default:
+                break;
+        }
+
+        return s;
+    }
+
+    private String Hour2Hangul(int hour) {
+        String s1 = new String("");
+        String s2 = new String("");
+        String sip = new String("십");
+        int num1, num2;
+
+        num1 = hour;
+
+        if (is_24hour) {
+            if (num1 >= 10) {
+                num1 = hour / 10;
+                num2 = hour % 10;
+
+                if (num1 == 1 && num2 == 0) {
+                    s1 = sip;
+                } else {
+                    if (num1 != 1) {
+                        s1 = Num2Hangul_2(num1) + sip;
+                    } else {
+                        s1 = sip;
+                    }
+                    if (num2 != 0) {
+                        s2 += Num2Hangul_2(num2);
+                    }
+                }
+            } else {
+                s1 += "공" + Num2Hangul_2(num1);
+            }
+        } else {
+            if (hour == 0) {
+                return "오전\n열두시 ";
+            } else if (hour == 12) {
+                return "오후\n열두시 ";
+            } else if (hour > 12) {
+                return "오후\n"+ Num2Hangul_1(hour - 12)
+                        + "시 ";
+            } else {
+                return "오전\n" + Num2Hangul_1(hour)
+                        + "시 ";
+            }
+        }
+
+        return s1 + s2 + "시 ";
+    }
+
+    private String MinSec2Hangul(boolean is_min, int value) {
+        String s1 = new String("");
+        String s2 = new String("");
+        String sip = new String("십");
+        int num1, num2;
+
+        num1 = value;
+
+        if (num1 == 0) {
+            if (is_min) {
+                return "영분 ";
+            } else {
+                return "영초";
+            }
+        }
+
+        if (num1 >= 10) {
+            num1 = value / 10;
+            num2 = value % 10;
+
+            if (num1 == 1 && num2 == 0) {
+                s1 = sip;
+            } else {
+                if (num1 != 1) {
+                    s1 = Num2Hangul_2(num1) + sip;
+                } else {
+                    s1 = sip;
+                }
+                if (num2 != 0) {
+                    s2 += Num2Hangul_2(num2);
+                }
+            }
+        } else {
+            s1 += Num2Hangul_2(num1);
+        }
+
+        if (is_min) {
+            return s1 + s2 + "분 ";
+        } else {
+            return s1 + s2 + "초";
+        }
+    }
+
+    public void UpdateClock() {
+        String sResult;
+
+        if (getResources().getConfiguration().orientation
+                == Configuration.ORIENTATION_LANDSCAPE) {
+            sResult = Hour2Hangul(mHour)
+                    + MinSec2Hangul(true, mMinute)
+                    + MinSec2Hangul(false, mSecond);
+        } else {
+            sResult = Hour2Hangul(mHour) + "\n"
+                    + MinSec2Hangul(true, mMinute) + "\n"
+                    + MinSec2Hangul(false, mSecond);
+        }
+
+        text_clock.setText(sResult);
+    }
+
+    public void UpdateTimer() {
+        String sResult;
+
+        if (getResources().getConfiguration().orientation
+                == Configuration.ORIENTATION_LANDSCAPE) {
+            sResult = Hour2Hangul(TimerHour)
+                    + MinSec2Hangul(true, TimerMinute)
+                    + MinSec2Hangul(false, TimerSecond);
+        } else {
+            sResult = Hour2Hangul(TimerHour) + "\n"
+                    + MinSec2Hangul(true, TimerMinute) + "\n"
+                    + MinSec2Hangul(false, TimerSecond);
+        }
+
+        text_timer.setText(sResult);
+    }
+
+    public void CancelThreads() {
+        if (ClockThread != null && ClockThread.isAlive()) {
+            mClockRefresher.cancel();
+            mClockRefresher = null;
+            ClockThread = null;
+        }
+        if (TimerThread != null && TimerThread.isAlive()) {
+            mTimerRefresher.cancel();
+            mTimerRefresher = null;
+            TimerThread = null;
+        }
+    }
+
+    private final Handler UpdateClock_Handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            UpdateClock();
+        }
+    };
+
+    private class ClockRefresher extends Thread {
+
+        private boolean is_thread_canceled = false;
+
+        public void cancel() {
+            is_thread_canceled = true;
+        }
+
+        @Override
+        public void run() {
+            while (!is_thread_canceled) {
+                mSecond++;
+
+                if (mSecond == 60) {
+                    mSecond = 0;
+                    mMinute++;
+                }
+
+                if (mMinute == 60) {
+                    mMinute = 0;
+                    mHour++;
+                }
+
+                if (mHour > 24) {
+                    mHour = 0;
+                }
+
+                Message msg = UpdateClock_Handler.obtainMessage();
+                UpdateClock_Handler.sendMessage(msg);
+
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private final Handler UpdateTimer_Handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            UpdateTimer();
+        }
+    };
+
+    private class TimerRefresher extends Thread {
+
+        private boolean is_thread_canceled = false;
+
+        public void cancel() {
+            is_thread_canceled = true;
+        }
+
+        @Override
+        public void run() {
+            while (!is_thread_canceled) {
+                if (TimerHour == 0 && TimerMinute == 0 && TimerSecond == 0) {
+                    return;
+                }
+
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                TimerSecond--;
+
+                if (TimerSecond == 0) {
+                    if (TimerMinute != 0) {
+                        TimerSecond = 59;
+                        TimerMinute--;
+                    } else {
+                        TimerSecond = 0;
+                    }
+                }
+
+                if (TimerMinute == 0) {
+                    if (TimerHour != 0) {
+                        TimerMinute = 59;
+                        TimerHour--;
+                    } else {
+                        TimerMinute = 0;
+                    }
+                }
+
+                if (TimerHour < 0) {
+                    TimerHour = 0;
+                }
+
+                Message msg = UpdateTimer_Handler.obtainMessage();
+                UpdateTimer_Handler.sendMessage(msg);
+            }
+        }
+    }
+}

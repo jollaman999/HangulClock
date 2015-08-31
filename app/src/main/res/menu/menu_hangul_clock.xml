@@ -1,0 +1,19 @@
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".HangulClock">
+
+    <item
+        android:id="@+id/action_clock"
+        android:title="@string/action_clock"
+        android:orderInCategory="100"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_timer"
+        android:title="@string/action_timer"
+        android:orderInCategory="100"
+        app:showAsAction="always" />
+
+</menu>
