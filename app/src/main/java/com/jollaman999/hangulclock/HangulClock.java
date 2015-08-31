@@ -25,6 +25,7 @@ public class HangulClock extends AppCompatActivity {
     private TextView text_clock_timer;
     private CheckBox chk_screen_keep_on;
     private CheckBox chk_24hour;
+    private Button btn_current_time;
     private Button btn_clock_setting;
 
     private EditText edit_timer_hour;
@@ -59,6 +60,7 @@ public class HangulClock extends AppCompatActivity {
         text_clock_timer = (TextView) findViewById(R.id.text_clock);
         chk_screen_keep_on = (CheckBox) findViewById(R.id.chk_screen_keep_on);
         chk_24hour = (CheckBox) findViewById(R.id.chk_24hour);
+        btn_current_time = (Button) findViewById(R.id.btn_current_time);
         btn_clock_setting = (Button) findViewById (R.id.btn_clock_setting);
 
         is_24hour = false;
@@ -99,6 +101,13 @@ public class HangulClock extends AppCompatActivity {
             }
         });
 
+        btn_current_time.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                is_time_changed = false;
+                TimeSync();
+            }
+        });
         btn_clock_setting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -300,6 +309,8 @@ public class HangulClock extends AppCompatActivity {
         mHour = calendar.get(Calendar.HOUR_OF_DAY);
         mMinute = calendar.get(Calendar.MINUTE);
         mSecond = calendar.get(Calendar.SECOND);
+
+        UpdateClockTimer();
     }
 
     private String Num2Hangul_1 (int value) {

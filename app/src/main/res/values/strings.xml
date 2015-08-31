@@ -6,6 +6,7 @@
 
     <string name="keep_screen_on">화면 끄기 방지</string>
     <string name="use_24hour">이십사시 시간사용</string>
+    <string name="current_time">현재 시각</string>
     <string name="time_settings">시간 설정</string>
 
     <string name="timer_hint_hour">시간</string>
