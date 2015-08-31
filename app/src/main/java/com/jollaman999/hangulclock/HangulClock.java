@@ -674,21 +674,14 @@ public class HangulClock extends AppCompatActivity {
                 if (mSecond == 0) {
                     if (mHour != 0 && mMinute == 0) {
                         mSecond = 59;
+                        mMinute = 59;
+                        mHour--;
                     } else if (mMinute != 0) {
                         mSecond = 59;
                         mMinute--;
                     }
                 } else {
                     mSecond--;
-                }
-
-                if (mMinute == 0 && mHour != 0) {
-                        mMinute = 59;
-                        mHour--;
-                }
-
-                if (mHour < 0) {
-                    mHour = 0;
                 }
 
                 Message msg = UpdateClockTimer_Handler.obtainMessage();
