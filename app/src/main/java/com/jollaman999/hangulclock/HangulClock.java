@@ -126,6 +126,7 @@ public class HangulClock extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String s;
+
                 CancelThreads();
 
                 s = edit_timer_hour.getText().toString();
@@ -479,11 +480,13 @@ public class HangulClock extends AppCompatActivity {
 
     public void CancelThreads() {
         if (ClockThread != null && ClockThread.isAlive()) {
+            ClockThread.interrupt();
             mClockRefresher.cancel();
             mClockRefresher = null;
             ClockThread = null;
         }
         if (TimerThread != null && TimerThread.isAlive()) {
+            TimerThread.interrupt();
             mTimerRefresher.cancel();
             mTimerRefresher = null;
             TimerThread = null;
