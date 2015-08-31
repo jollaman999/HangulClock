@@ -2,7 +2,10 @@ package com.jollaman999.hangulclock;
 
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.res.Configuration;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -52,6 +55,8 @@ public class HangulClock extends AppCompatActivity {
     static boolean is_time_changed;
     static boolean is_timer_paused;
     static boolean is_timer_cleared;
+
+    MediaPlayer mMediaPlayer;
 
     public void Init_Clock() {
         is_clock = true;
@@ -511,6 +516,26 @@ public class HangulClock extends AppCompatActivity {
         text_clock_timer.setText(sResult);
     }
 
+    private void PlayAlarm() {
+        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+            return;
+        }
+
+        mMediaPlayer = MediaPlayer.create(this, R.raw.alarm);
+
+        /* Volume calculations */
+        AudioManager mgr = (AudioManager) this
+                .getSystemService(Context.AUDIO_SERVICE);
+        float streamVolumeCurrent = mgr
+                .getStreamVolume(AudioManager.STREAM_ALARM);
+        float streamVolumeMax = mgr
+                .getStreamMaxVolume(AudioManager.STREAM_ALARM);
+        float volume = streamVolumeCurrent / streamVolumeMax;
+
+        mMediaPlayer.setVolume(volume, volume);
+        mMediaPlayer.start();
+    }
+
     public void CancelThreads() {
         if (ClockThread != null && ClockThread.isAlive()) {
             ClockThread.interrupt();
@@ -572,6 +597,16 @@ public class HangulClock extends AppCompatActivity {
         }
     }
 
+    private final Handler Alarm_Handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            PlayAlarm();
+            Toast.makeText(getApplicationContext(),
+                    R.string.alarm_message,
+                    Toast.LENGTH_LONG).show();
+        }
+    };
+
     private final Handler btn_start_pause_Handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -591,10 +626,15 @@ public class HangulClock extends AppCompatActivity {
         public void run() {
             while (!is_thread_canceled) {
                 if (mHour == 0 && mMinute == 0 && mSecond == 0) {
+                    PlayAlarm();
+
                     is_timer_paused = true;
                     is_timer_cleared = true;
 
-                    Message msg = btn_start_pause_Handler.obtainMessage();
+                    Message msg;
+                    msg = Alarm_Handler.obtainMessage();
+                    Alarm_Handler.sendMessage(msg);
+                    msg = btn_start_pause_Handler.obtainMessage();
                     btn_start_pause_Handler.sendMessage(msg);
 
                     return;

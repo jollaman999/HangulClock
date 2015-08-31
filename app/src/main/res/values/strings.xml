@@ -16,4 +16,6 @@
     <string name="start">시작</string>
     <string name="pause">일시정지</string>
     <string name="stop">정지</string>
+
+    <string name="alarm_message">타이머 시간이 경과 되었습니다!</string>
 </resources>
