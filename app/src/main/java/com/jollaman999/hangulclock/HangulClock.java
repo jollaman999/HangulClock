@@ -22,8 +22,7 @@ import java.util.Calendar;
 
 public class HangulClock extends AppCompatActivity {
 
-    private TextView text_clock;
-    private TextView text_timer;
+    private TextView text_clock_timer;
     private CheckBox chk_screen_keep_on;
     private CheckBox chk_24hour;
     private Button btn_clock_setting;
@@ -41,10 +40,6 @@ public class HangulClock extends AppCompatActivity {
     private int mSecond;
     private Calendar calendar;
 
-    private int TimerHour;
-    private int TimerMinute;
-    private int TimerSecond;
-
     private final static int TIME_DIALOG_ID = 0;
 
     ClockRefresher mClockRefresher;
@@ -57,12 +52,11 @@ public class HangulClock extends AppCompatActivity {
     public void Init_Clock() {
         is_clock = true;
 
-        text_clock = (TextView) findViewById(R.id.text_clock);
+        text_clock_timer = (TextView) findViewById(R.id.text_clock);
         chk_screen_keep_on = (CheckBox) findViewById(R.id.chk_screen_keep_on);
         chk_24hour = (CheckBox) findViewById(R.id.chk_24hour);
         btn_clock_setting = (Button) findViewById (R.id.btn_clock_setting);
 
-        is_screen_keep_on = false;
         is_24hour = false;
 
         chk_screen_keep_on.setChecked(is_screen_keep_on);
@@ -97,7 +91,7 @@ public class HangulClock extends AppCompatActivity {
                 }
 
                 chk_24hour.setChecked(is_24hour);
-                UpdateClock();
+                UpdateClockTimer();
             }
         });
 
@@ -122,11 +116,10 @@ public class HangulClock extends AppCompatActivity {
         edit_timer_minute = (EditText) findViewById(R.id.edit_timer_minute);
         edit_timer_second = (EditText) findViewById(R.id.edit_timer_second);
 
-        text_timer = (TextView) findViewById(R.id.text_timer);
+        text_clock_timer = (TextView) findViewById(R.id.text_timer);
         chk_screen_keep_on = (CheckBox) findViewById(R.id.chk_screen_keep_on);
         btn_start_stop = (Button) findViewById(R.id.btn_start_stop);
 
-        is_screen_keep_on = false;
         is_24hour = true;
 
         btn_start_stop.setOnClickListener(new View.OnClickListener() {
@@ -138,9 +131,9 @@ public class HangulClock extends AppCompatActivity {
 
                 s = edit_timer_hour.getText().toString();
                 if (s == null || s.equals("")) {
-                    TimerHour = 0;
+                    mHour = 0;
                 } else if (Integer.parseInt(s) > 0 && Integer.parseInt(s) < 12) {
-                    TimerHour = Integer.parseInt(s);
+                    mHour = Integer.parseInt(s);
                 } else {
                     Toast.makeText(getApplicationContext(),
                             "시간의 범위가 초과하였습니다!",
@@ -149,9 +142,9 @@ public class HangulClock extends AppCompatActivity {
 
                 s = edit_timer_minute.getText().toString();
                 if (s == null || s.equals("")) {
-                    TimerMinute = 0;
+                    mMinute = 0;
                 } else if (Integer.parseInt(s) > 0 && Integer.parseInt(s) < 60) {
-                    TimerMinute = Integer.parseInt(s);
+                    mMinute = Integer.parseInt(s);
                 } else {
                     Toast.makeText(getApplicationContext(),
                             "분의 범위가 초과하였습니다!",
@@ -160,16 +153,16 @@ public class HangulClock extends AppCompatActivity {
 
                 s = edit_timer_second.getText().toString();
                 if (s == null || s.equals("")) {
-                    TimerSecond = 0;
+                    mSecond = 0;
                 } else if (Integer.parseInt(s) > 0 && Integer.parseInt(s) < 60) {
-                    TimerSecond = Integer.parseInt(s);
+                    mSecond = Integer.parseInt(s);
                 } else {
                     Toast.makeText(getApplicationContext(),
                             "초의 범위가 초과하였습니다!",
                             Toast.LENGTH_SHORT).show();
                 }
 
-                UpdateTimer();
+                UpdateClockTimer();
 
                 mTimerRefresher = new TimerRefresher();
                 TimerThread = new Thread(mTimerRefresher);
@@ -198,11 +191,11 @@ public class HangulClock extends AppCompatActivity {
             }
         });
 
-        TimerHour = 0;
-        TimerMinute = 0;
-        TimerSecond = 0;
+        mHour = 0;
+        mMinute = 0;
+        mSecond = 0;
 
-        UpdateTimer();
+        UpdateClockTimer();
     }
 
     @Override
@@ -216,6 +209,7 @@ public class HangulClock extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.clock);
+        is_screen_keep_on = false;
         Init_Clock();
     }
 
@@ -251,7 +245,7 @@ public class HangulClock extends AppCompatActivity {
                 public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
                     mHour = hourOfDay;
                     mMinute = minute;
-                    UpdateClock();
+                    UpdateClockTimer();
                 }
             };
 
@@ -453,7 +447,7 @@ public class HangulClock extends AppCompatActivity {
         }
     }
 
-    public void UpdateClock() {
+    public void UpdateClockTimer() {
         String sResult;
 
         if (getResources().getConfiguration().orientation
@@ -467,24 +461,7 @@ public class HangulClock extends AppCompatActivity {
                     + MinSec2Hangul(false, mSecond);
         }
 
-        text_clock.setText(sResult);
-    }
-
-    public void UpdateTimer() {
-        String sResult;
-
-        if (getResources().getConfiguration().orientation
-                == Configuration.ORIENTATION_LANDSCAPE) {
-            sResult = Hour2Hangul(TimerHour)
-                    + MinSec2Hangul(true, TimerMinute)
-                    + MinSec2Hangul(false, TimerSecond);
-        } else {
-            sResult = Hour2Hangul(TimerHour) + "\n"
-                    + MinSec2Hangul(true, TimerMinute) + "\n"
-                    + MinSec2Hangul(false, TimerSecond);
-        }
-
-        text_timer.setText(sResult);
+        text_clock_timer.setText(sResult);
     }
 
     public void CancelThreads() {
@@ -500,10 +477,10 @@ public class HangulClock extends AppCompatActivity {
         }
     }
 
-    private final Handler UpdateClock_Handler = new Handler() {
+    private final Handler UpdateClockTimer_Handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            UpdateClock();
+            UpdateClockTimer();
         }
     };
 
@@ -534,8 +511,8 @@ public class HangulClock extends AppCompatActivity {
                     mHour = 0;
                 }
 
-                Message msg = UpdateClock_Handler.obtainMessage();
-                UpdateClock_Handler.sendMessage(msg);
+                Message msg = UpdateClockTimer_Handler.obtainMessage();
+                UpdateClockTimer_Handler.sendMessage(msg);
 
                 try {
                     sleep(1000);
@@ -545,13 +522,6 @@ public class HangulClock extends AppCompatActivity {
             }
         }
     }
-
-    private final Handler UpdateTimer_Handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            UpdateTimer();
-        }
-    };
 
     private class TimerRefresher extends Thread {
 
@@ -564,7 +534,7 @@ public class HangulClock extends AppCompatActivity {
         @Override
         public void run() {
             while (!is_thread_canceled) {
-                if (TimerHour == 0 && TimerMinute == 0 && TimerSecond == 0) {
+                if (mHour == 0 && mMinute == 0 && mSecond == 0) {
                     return;
                 }
 
@@ -574,32 +544,32 @@ public class HangulClock extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                TimerSecond--;
+                mSecond--;
 
-                if (TimerSecond == 0) {
-                    if (TimerMinute != 0) {
-                        TimerSecond = 59;
-                        TimerMinute--;
+                if (mSecond == 0) {
+                    if (mMinute != 0) {
+                        mSecond = 59;
+                        mMinute--;
                     } else {
-                        TimerSecond = 0;
+                        mSecond = 0;
                     }
                 }
 
-                if (TimerMinute == 0) {
-                    if (TimerHour != 0) {
-                        TimerMinute = 59;
-                        TimerHour--;
+                if (mMinute == 0) {
+                    if (mHour != 0) {
+                        mMinute = 59;
+                        mHour--;
                     } else {
-                        TimerMinute = 0;
+                        mMinute = 0;
                     }
                 }
 
-                if (TimerHour < 0) {
-                    TimerHour = 0;
+                if (mHour < 0) {
+                    mHour = 0;
                 }
 
-                Message msg = UpdateTimer_Handler.obtainMessage();
-                UpdateTimer_Handler.sendMessage(msg);
+                Message msg = UpdateClockTimer_Handler.obtainMessage();
+                UpdateClockTimer_Handler.sendMessage(msg);
             }
         }
     }
