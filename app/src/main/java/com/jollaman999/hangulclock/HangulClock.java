@@ -48,9 +48,11 @@ public class HangulClock extends AppCompatActivity {
     Thread TimerThread;
 
     static boolean is_clock;
+    static boolean is_time_changed;
 
     public void Init_Clock() {
         is_clock = true;
+        is_time_changed = false;
 
         text_clock_timer = (TextView) findViewById(R.id.text_clock);
         chk_screen_keep_on = (CheckBox) findViewById(R.id.chk_screen_keep_on);
@@ -246,6 +248,7 @@ public class HangulClock extends AppCompatActivity {
                     mHour = hourOfDay;
                     mMinute = minute;
                     UpdateClockTimer();
+                    is_time_changed = true;
                 }
             };
 
@@ -260,7 +263,7 @@ public class HangulClock extends AppCompatActivity {
     }
 
     public void TimeSync(boolean is_clock) {
-        if (!is_clock) {
+        if (!is_clock || is_time_changed) {
             return;
         }
 
