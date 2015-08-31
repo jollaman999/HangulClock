@@ -52,7 +52,11 @@ public class HangulClock extends AppCompatActivity {
     Thread ClockThread;
     Thread TimerThread;
 
+    static boolean is_clock;
+
     public void Init_Clock() {
+        is_clock = true;
+
         text_clock = (TextView) findViewById(R.id.text_clock);
         chk_screen_keep_on = (CheckBox) findViewById(R.id.chk_screen_keep_on);
         chk_24hour = (CheckBox) findViewById(R.id.chk_24hour);
@@ -104,7 +108,7 @@ public class HangulClock extends AppCompatActivity {
             }
         });
 
-        TimeSync();
+        TimeSync(is_clock);
 
         mClockRefresher = new ClockRefresher();
         ClockThread = new Thread(mClockRefresher);
@@ -112,6 +116,8 @@ public class HangulClock extends AppCompatActivity {
     }
 
     public void Init_Timer() {
+        is_clock = false;
+
         edit_timer_hour = (EditText) findViewById(R.id.edit_timer_hour);
         edit_timer_minute = (EditText) findViewById(R.id.edit_timer_minute);
         edit_timer_second = (EditText) findViewById(R.id.edit_timer_second);
@@ -202,7 +208,7 @@ public class HangulClock extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        TimeSync();
+        TimeSync(is_clock);
     }
 
     @Override
@@ -259,7 +265,11 @@ public class HangulClock extends AppCompatActivity {
         return null;
     }
 
-    public void TimeSync() {
+    public void TimeSync(boolean is_clock) {
+        if (!is_clock) {
+            return;
+        }
+
         calendar = Calendar.getInstance();
 
         mHour = calendar.get(Calendar.HOUR_OF_DAY);
