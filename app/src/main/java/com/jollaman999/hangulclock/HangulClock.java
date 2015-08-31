@@ -143,17 +143,7 @@ public class HangulClock extends AppCompatActivity {
         btn_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                CancelThreads();
-
-                mHour = 0;
-                mMinute = 0;
-                mSecond = 0;
-
-                UpdateClockTimer();
-
-                btn_start_pause.setText(R.string.start);
-                is_timer_paused = true;
-                is_timer_cleared = true;
+                ResetTimer();
             }
         });
         btn_start_pause.setOnClickListener(new View.OnClickListener() {
@@ -192,6 +182,7 @@ public class HangulClock extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),
                             "시간의 범위가 초과하였습니다!",
                             Toast.LENGTH_SHORT).show();
+                    ResetTimer();
                     return;
                 }
 
@@ -204,6 +195,7 @@ public class HangulClock extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),
                             "분의 범위가 초과하였습니다!",
                             Toast.LENGTH_SHORT).show();
+                    ResetTimer();
                     return;
                 }
 
@@ -216,6 +208,7 @@ public class HangulClock extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),
                             "초의 범위가 초과하였습니다!",
                             Toast.LENGTH_SHORT).show();
+                    ResetTimer();
                     return;
                 }
 
@@ -253,6 +246,20 @@ public class HangulClock extends AppCompatActivity {
         mSecond = 0;
 
         UpdateClockTimer();
+    }
+
+    private void ResetTimer() {
+        CancelThreads();
+
+        mHour = 0;
+        mMinute = 0;
+        mSecond = 0;
+
+        UpdateClockTimer();
+
+        btn_start_pause.setText(R.string.start);
+        is_timer_paused = true;
+        is_timer_cleared = true;
     }
 
     @Override
@@ -628,10 +635,10 @@ public class HangulClock extends AppCompatActivity {
         }
     };
 
-    private final Handler btn_start_pause_Handler = new Handler() {
+    private final Handler ResetTimer_Handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            btn_start_pause.setText(R.string.start);
+            ResetTimer();
         }
     };
 
@@ -647,16 +654,11 @@ public class HangulClock extends AppCompatActivity {
         public void run() {
             while (!is_thread_canceled) {
                 if (mHour == 0 && mMinute == 0 && mSecond == 0) {
-                    PlayAlarm();
-
-                    is_timer_paused = true;
-                    is_timer_cleared = true;
-
                     Message msg;
                     msg = Alarm_Handler.obtainMessage();
                     Alarm_Handler.sendMessage(msg);
-                    msg = btn_start_pause_Handler.obtainMessage();
-                    btn_start_pause_Handler.sendMessage(msg);
+                    msg = ResetTimer_Handler.obtainMessage();
+                    ResetTimer_Handler.sendMessage(msg);
 
                     return;
                 }
